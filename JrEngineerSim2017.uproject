@@ -3,6 +3,13 @@
 	"EngineAssociation": "4.15",
 	"Category": "",
 	"Description": "",
+     	"Modules": [
+         	{
+             		"Name": "JrEngineerSim2017",
+             		"Type": "Runtime",
+             		"LoadingPhase": "Default"
+        	 }
+     	],
 	"Plugins": [
 		{
 			"Name": "PhysXVehicles",
