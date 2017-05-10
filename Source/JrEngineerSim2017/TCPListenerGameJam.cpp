@@ -92,7 +92,43 @@ void ATCPListenerGameJam::UpdateHost(float DeltaTime) {
 //---------------------------------------------------------------------------------------------------------------------------
 void ATCPListenerGameJam::ConnectToHost(const FString& hostAddr) {
 
+	FString address = hostAddr;
+	int32 port = 11000;
+	FIPv4Address ip;
+	FIPv4Address::Parse(address, ip);
 
+	m_serverSocket = ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM)->CreateSocket(NAME_Stream, TEXT("default"), false);
+	TSharedRef<FInternetAddr> addr = ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM)->CreateInternetAddr();
+	addr->SetIp(ip.Value);
+	addr->SetPort(port);
+
+	bool connected = m_serverSocket->Connect(*addr);
+
+	if (connected) {
+		UE_LOG(LogTemp, Warning, TEXT("SUCCESS! Connected to server."));
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 20.0f, FColor::Green, "SUCCESS! Connected to server.");
+	}
+	else {
+		UE_LOG(LogTemp, Warning, TEXT("ERROR: Could not connect to server."));
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 20.0f, FColor::Green, "ERROR: Could not connect to server.");
+	}
+
+
+	FString serialized = TEXT("allo");
+	TCHAR *serializedChar = serialized.GetCharArray().GetData();
+	int32 size = FCString::Strlen(serializedChar);
+	int32 sent = 0;
+
+	bool successful = m_serverSocket->Send((uint8*)TCHAR_TO_UTF8(serializedChar), size, sent);
+
+	if (successful) {
+		UE_LOG(LogTemp, Warning, TEXT("SUCCESS! Message sent."));
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 20.0f, FColor::Green, "SUCCESS! Message sent.");
+	}
+	else {
+		UE_LOG(LogTemp, Warning, TEXT("ERROR: Could not send message to server."));
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 20.0f, FColor::Green, "ERROR: Could not send message to server.");
+	}
 }
 
 

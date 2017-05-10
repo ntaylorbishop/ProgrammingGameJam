@@ -65,14 +65,7 @@ public:
 
 	eConnectType m_connectionType = CONNECT_NUM_CONNECTS;
 	FTcpListener* m_tcpListener = nullptr;
-
-	FSocket* m_connectionSocket;
-	FSocket* m_listenerSocket;
-
-
-	FSocket* ListenerSocket;
-	FSocket* ConnectionSocket;
-	FIPv4Endpoint RemoteAddressForConnection;
+	FSocket* m_serverSocket = nullptr;
 
 protected:
 	virtual void BeginPlay() override;	
