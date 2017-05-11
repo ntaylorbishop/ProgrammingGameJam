@@ -61,9 +61,12 @@ void ATCPListenerGameJam::BeginHosting(FString& outHostAddr) {
 	}
 
 	//Create Socket
+	//m_listenerSocket = ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM)->CreateSocket(NAME_Stream, TEXT("default"), false);
 	FIPv4Endpoint Endpoint(FIPv4Address(IP4Nums[0], IP4Nums[1], IP4Nums[2], IP4Nums[3]), 11000);
 	m_tcpListener = new FTcpListener(Endpoint);
+	m_tcpListener->OnConnectionAccepted().BindUObject(this, &ATCPListenerGameJam::ListenToMessage);
 	m_tcpListener->Init();
+
 
 	FString outAddr = bindAddr->ToString(false);
 	outHostAddr = outAddr;
@@ -74,6 +77,7 @@ void ATCPListenerGameJam::BeginHosting(FString& outHostAddr) {
 void ATCPListenerGameJam::UpdateHost(float DeltaTime) {
 
 	m_tcpListener->Run();
+
 
 	//uint8 recvData[PACKET_MTU];
 	//int32 bytesRead = 0;
@@ -178,4 +182,13 @@ bool ATCPListenerGameJam::FormatIP4ToNumber(const FString& TheIP, uint8(&Out)[4]
 FString ATCPListenerGameJam::StringFromBinaryArray(TArray<uint8>& BinaryArray) {
 	BinaryArray.Add(0);
 	return BytesToString(BinaryArray.GetData(), BinaryArray.Num());
+}
+
+
+//---------------------------------------------------------------------------------------------------------------------------
+bool ATCPListenerGameJam::ListenToMessage(FSocket* inSocket, const FIPv4Endpoint& ipAddr) const {
+
+	FString str = "Received a message!";
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, str); // if you want to append the port (true) or not (false).
+	return true;
 }

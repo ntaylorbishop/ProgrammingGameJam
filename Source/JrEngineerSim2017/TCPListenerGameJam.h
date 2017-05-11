@@ -6,6 +6,7 @@
 #include "Runtime/Networking/Public/Interfaces/IPv4/IPv4Endpoint.h"
 #include "Runtime/Core/Public/Containers/UnrealString.h"
 #include "Runtime/Networking/Public/Common/TcpListener.h"
+#include "Runtime/Networking/Public/Interfaces/IPv4/IPv4Endpoint.h"
 #include "TCPListenerGameJam.generated.h"
 
 
@@ -53,7 +54,7 @@ public:
 
 
 	//MESSAGE PASSING
-	void ListenToMessage();
+	bool ListenToMessage(FSocket* inSocket, const FIPv4Endpoint& ipAddr) const;
 	
 	
 	//UTILS
@@ -66,6 +67,7 @@ public:
 	eConnectType m_connectionType = CONNECT_NUM_CONNECTS;
 	FTcpListener* m_tcpListener = nullptr;
 	FSocket* m_serverSocket = nullptr;
+	FSocket* m_listenerSocket = nullptr;
 
 protected:
 	virtual void BeginPlay() override;	
