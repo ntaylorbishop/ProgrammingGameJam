@@ -130,8 +130,13 @@ void ATCPListenerGameJam::CheckForMessages() {
 
 
 	FString recvMsg = DecodeCurrentMessage();
+	TArray<FString> parsedMsg;
+	recvMsg.ParseIntoArray(parsedMsg, TEXT("|"), false);
+	// Parsed now contains ["Parse", "Into", "Array", "", "Example"]
+
 	m_hasNewPosition = true;
-	m_mousePositionSent.InitFromString(recvMsg);
+	m_mousePositionSent.InitFromString(parsedMsg[0]);
+	m_tileEnum = FCString::Atoi(*parsedMsg[1]);
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, recvMsg);
 
 	m_msgBufferBytesRead = 0;
@@ -151,11 +156,12 @@ void ATCPListenerGameJam::UpdateHost(float DeltaTime) {
 
 
 //---------------------------------------------------------------------------------------------------------------------------
-void ATCPListenerGameJam::HasNewPosition(FVector& position, bool& hasNewPosition) {
+void ATCPListenerGameJam::HasNewPosition(FVector& position, bool& hasNewPosition, int& tileEnum) {
 
 	position = m_mousePositionSent;
 	bool out = m_hasNewPosition;
 	hasNewPosition = out;
+	tileEnum = m_tileEnum;
 
 	//if (m_hasNewPosition) {
 	//	m_hasNewPosition = false;
@@ -194,23 +200,6 @@ void ATCPListenerGameJam::ConnectToHost(const FString& hostAddr) {
 	}
 
 	m_msgBuffer = new uint8[PACKET_MTU];
-	return;
-
-
-	FString serialized = TEXT("Connect|");
-	uint32 size = StringToBytes(serialized, m_msgBuffer, PACKET_MTU);
-	int32 sent = 0;
-
-	bool successful = m_serverSocket->Send(m_msgBuffer, size, sent);
-
-	if (successful) {
-		UE_LOG(LogTemp, Warning, TEXT("SUCCESS! Message sent."));
-		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 20.0f, FColor::Green, "SUCCESS! Message sent.");
-	}
-	else {
-		UE_LOG(LogTemp, Warning, TEXT("ERROR: Could not send message to server."));
-		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 20.0f, FColor::Green, "ERROR: Could not send message to server.");
-	}
 }
 
 
@@ -221,9 +210,9 @@ void ATCPListenerGameJam::UpdateClient(float DeltaTime) {
 
 
 //---------------------------------------------------------------------------------------------------------------------------
-void ATCPListenerGameJam::SendPlaceTile(const FVector& pinTilePos) {
+void ATCPListenerGameJam::SendPlaceTile(const FVector& pinTilePos, int tileEnum) {
 
-	FString posStr = pinTilePos.ToString();
+	FString posStr = pinTilePos.ToString() + "|" + FString::FromInt(tileEnum) + "|";
 	uint32 size = StringToBytes(posStr, m_msgBuffer, PACKET_MTU);
 	int32 sent = 0;
 

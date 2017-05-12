@@ -52,14 +52,14 @@ public:
 	bool OnConnectionAccepted(FSocket* inSocket, const FIPv4Endpoint& ipAddr) const;
 
 	UFUNCTION(BlueprintCallable, Category = "Networking")
-	void HasNewPosition(FVector& position, bool& hasNewPosition);
+	void HasNewPosition(FVector& position, bool& hasNewPosition, int& tileEnum);
 
 	//CLIENT
 	UFUNCTION(BlueprintCallable, Category = "Networking")
 	void ConnectToHost(const FString& hostAddr);
 	void UpdateClient(float DeltaTime);
 	UFUNCTION(BlueprintCallable, Category = "Networking")
-	void SendPlaceTile(const FVector& pinTilePos);
+	void SendPlaceTile(const FVector& pinTilePos, int tileEnum);
 
 
 	
@@ -79,9 +79,10 @@ public:
 	//FTcpListener listener;
 	uint8* m_msgBuffer = nullptr;
 	uint32 m_msgBufferBytesRead = 0;
+
 	bool m_hasNewPosition = false;
 	FVector m_mousePositionSent;
-
+	int m_tileEnum;
 
 	//CLIENT
 	FSocket* m_serverSocket = nullptr;
