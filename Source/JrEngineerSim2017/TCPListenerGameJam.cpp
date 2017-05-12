@@ -121,14 +121,17 @@ void ATCPListenerGameJam::CheckForMessages() {
 
 		int32 bytesRead = 0;
 		m_clientSocket->Recv(m_msgBuffer, PACKET_MTU, bytesRead);
-		m_msgBufferBytesRead = bytesRead;
+		m_msgBufferBytesRead = size;
 	}
 
 	if (m_msgBufferBytesRead <= 0) {
 		return;
 	}
 
+
 	FString recvMsg = DecodeCurrentMessage();
+	m_hasNewPosition = true;
+	m_mousePositionSent.InitFromString(recvMsg);
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, recvMsg);
 
 	m_msgBufferBytesRead = 0;
@@ -144,6 +147,19 @@ void ATCPListenerGameJam::UpdateHost(float DeltaTime) {
 	else {
 		CheckForMessages();
 	}
+}
+
+
+//---------------------------------------------------------------------------------------------------------------------------
+void ATCPListenerGameJam::HasNewPosition(FVector& position, bool& hasNewPosition) {
+
+	position = m_mousePositionSent;
+	bool out = m_hasNewPosition;
+	hasNewPosition = out;
+
+	//if (m_hasNewPosition) {
+	//	m_hasNewPosition = false;
+	//}
 }
 
 
@@ -177,8 +193,10 @@ void ATCPListenerGameJam::ConnectToHost(const FString& hostAddr) {
 		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 20.0f, FColor::Green, "ERROR: Could not connect to server.");
 	}
 
-
 	m_msgBuffer = new uint8[PACKET_MTU];
+	return;
+
+
 	FString serialized = TEXT("Connect|");
 	uint32 size = StringToBytes(serialized, m_msgBuffer, PACKET_MTU);
 	int32 sent = 0;
@@ -199,6 +217,26 @@ void ATCPListenerGameJam::ConnectToHost(const FString& hostAddr) {
 //---------------------------------------------------------------------------------------------------------------------------
 void ATCPListenerGameJam::UpdateClient(float DeltaTime) {
 
+}
+
+
+//---------------------------------------------------------------------------------------------------------------------------
+void ATCPListenerGameJam::SendPlaceTile(const FVector& pinTilePos) {
+
+	FString posStr = pinTilePos.ToString();
+	uint32 size = StringToBytes(posStr, m_msgBuffer, PACKET_MTU);
+	int32 sent = 0;
+
+	bool successful = m_serverSocket->Send(m_msgBuffer, size, sent);
+
+	if (successful) {
+		UE_LOG(LogTemp, Warning, TEXT("SUCCESS! Message sent."));
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 20.0f, FColor::Green, "SUCCESS! Sent tile position successfully.");
+	}
+	else {
+		UE_LOG(LogTemp, Warning, TEXT("ERROR: Could not send message to server."));
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 20.0f, FColor::Green, "ERROR: Could not send tile position to server.");
+	}
 }
 
 
@@ -246,15 +284,6 @@ FString ATCPListenerGameJam::DecodeCurrentMessage() const {
 
 //---------------------------------------------------------------------------------------------------------------------------
 bool ATCPListenerGameJam::OnConnectionAccepted(FSocket* inSocket, const FIPv4Endpoint& ipAddr) const {
-
-/*
-	TSharedRef<FInternetAddr> clientAddr = ipAddr.ToInternetAddr();
-	m_clientSocket = inSocket;
-	bool connected = m_clientSocket->Connect(*clientAddr);
-
-	if (connected) {
-		int a = 0;
-	}*/
 
 	FString str = "RECEIVED CONNECTION from" + ipAddr.ToString();
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, str);
