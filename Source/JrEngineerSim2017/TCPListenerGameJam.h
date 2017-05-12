@@ -45,7 +45,10 @@ public:
 	//HOST
 	UFUNCTION(BlueprintCallable, Category = "Networking")
 	void BeginHosting(FString& outHostAddr);
+	void CheckForIncomingConnections();
+	void CheckForMessages();
 	void UpdateHost(float DeltaTime);
+	bool OnConnectionAccepted(FSocket* inSocket, const FIPv4Endpoint& ipAddr) const;
 
 	//CLIENT
 	UFUNCTION(BlueprintCallable, Category = "Networking")
@@ -53,22 +56,32 @@ public:
 	void UpdateClient(float DeltaTime);
 
 
-	//MESSAGE PASSING
-	bool ListenToMessage(FSocket* inSocket, const FIPv4Endpoint& ipAddr) const;
 	
 	
 	//UTILS
 	TSharedRef<FInternetAddr> GetLocalIP();
 	bool FormatIP4ToNumber(const FString& TheIP, uint8(&Out)[4]);
-	FString StringFromBinaryArray(TArray<uint8>& BinaryArray);
+	FString DecodeCurrentMessage() const;
 
 
 
 	eConnectType m_connectionType = CONNECT_NUM_CONNECTS;
-	FTcpListener* m_tcpListener = nullptr;
+
+	//HOST
+	FSocket* m_listenSocket = nullptr;
+	mutable FSocket* m_clientSocket = nullptr;
+	//FTcpListener listener;
+	uint8* m_msgBuffer = nullptr;
+	uint32 m_msgBufferBytesRead = 0;
+
+
+	//CLIENT
 	FSocket* m_serverSocket = nullptr;
-	FSocket* m_listenerSocket = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Networking")
+	bool m_hasConnection = false;
 
 protected:
 	virtual void BeginPlay() override;	
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 };
